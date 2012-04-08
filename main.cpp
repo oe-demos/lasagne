@@ -8,13 +8,10 @@ using namespace std;
 #include <OpenCL/opencl.h>
 #include <OpenCL/cl.h>
 #include <OpenCL/cl_gl.h>
-//#include <GL/glew.h>
 #include <GLUT/glut.h>
-//#ifndef _WIN32
-//#include <GL/glxew.h>
-//#endif //!_WIN32
-//#include <CGL/CGLMacro.h>
 #include <OpenGL/CGLCurrent.h>
+
+#include "GLSLShader.h"
 
 #define WIDTH  1408
 #define HEIGHT 1024
@@ -34,6 +31,8 @@ size_t                  global[] = {mesh_width, mesh_height};
 char                    *pathname = NULL;
 char                    *source = NULL; 
  
+GLSLShader* shader;
+
 // Globals associated with the position vbo
 const unsigned int p_vbo_size = mesh_width*mesh_height*4*sizeof(float); 
 GLuint  p_vbo;
@@ -78,6 +77,10 @@ void setTitle()
 int main(int argc, const char **argv) 
 {
   initgl(argc, argv);
+
+  string vert = "void main() { gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; }";
+  string frag = "uniform float time; void main() { gl_FragColor = vec4(sin(time),0,1,1); }";
+  shader = new GLSLShader(vert, frag);
   
   clGetPlatformIDs(1, &platform, NULL);
   if(argc > 1) {
@@ -283,19 +286,15 @@ void display()
   glBindBuffer(GL_ARRAY_BUFFER, c_vbo);
   glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
   glEnableClientState(GL_COLOR_ARRAY);
+
+  shader->Bind();
+  shader->SetUniform("time", anim);
   
   // draw points, lines or triangles according to the user keyboard input
   switch(drawMode) {
   case GL_LINE_STRIP:
     for(int i=0 ; i < mesh_width*mesh_height; i+= mesh_width)
       glDrawArrays(GL_LINE_STRIP, i, mesh_width);
-    break;
-  case GL_TRIANGLE_FAN:
-      /*    
-    glPrimitiveRestartIndexNV(RestartIndex);
-    glEnableClientState(GL_PRIMITIVE_RESTART_NV);
-    glDrawElements(GL_TRIANGLE_FAN, qIndices_size, GL_UNSIGNED_INT, qIndices);
-*/      
     break;
   default:
     glDrawArrays(GL_POINTS, 0, mesh_width * mesh_height);
