@@ -77,6 +77,16 @@ public:
             free(infoLog);
         }
     }
+
+    ~GLSLShader() {
+        if (shaderProgram) {
+            glDetachShader(shaderProgram, fragmentShaderId);
+            glDetachShader(shaderProgram, vertexShaderId);
+            glDeleteProgram(shaderProgram);
+        }
+        glDeleteShader(vertexShaderId);
+        glDeleteShader(fragmentShaderId);
+    }
     
     void Bind() {
         glUseProgram(shaderProgram);
