@@ -127,14 +127,40 @@ int main(int argc, const char **argv)
   glGenBuffers(1, &p_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, p_vbo);
   // initialize buffer object
-  glBufferData(GL_ARRAY_BUFFER, p_vbo_size, 0, GL_DYNAMIC_DRAW);        
+  //glBufferData(GL_ARRAY_BUFFER, p_vbo_size, 0, GL_DYNAMIC_DRAW);        
+  float* initial_positions = new float[mesh_width*mesh_height*4];
+  for (unsigned int y=0; y<mesh_height; y++) {
+      for (unsigned int x=0; x<mesh_width; x++) {
+          initial_positions[(x+y*mesh_width)*4+0] = ((float(x)/float(mesh_width))*2.0)-1.0;
+          initial_positions[(x+y*mesh_width)*4+1] = 0;
+          initial_positions[(x+y*mesh_width)*4+2] = ((float(y)/float(mesh_height))*2.0)-1.0;
+          initial_positions[(x+y*mesh_width)*4+3] = 1.0f;
+      }
+  }
+  glBufferData(GL_ARRAY_BUFFER, p_vbo_size, initial_positions, GL_DYNAMIC_DRAW);        
+  delete[] initial_positions;
+
   // create OpenCL buffer from GL VBO
   p_vbocl = clCreateFromGLBuffer(context, CL_MEM_WRITE_ONLY, p_vbo, NULL);
  
   // create color c_vbo (very similar to the position vbo)
   glGenBuffers(1, &c_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, c_vbo);
-  glBufferData(GL_ARRAY_BUFFER, c_vbo_size, 0, GL_DYNAMIC_DRAW);        
+  
+  unsigned char* initial_colors = new unsigned char[mesh_width*mesh_height*4];
+  for (unsigned int y=0; y<mesh_height; y++) {
+      for (unsigned int x=0; x<mesh_width; x++) {
+          initial_colors[(x+y*mesh_width)*4+0] = (float(x)/float(mesh_width)) * 255.0;
+          initial_colors[(x+y*mesh_width)*4+1] = 255;
+          initial_colors[(x+y*mesh_width)*4+2] = (float(y)/float(mesh_height)) * 255.0;
+          initial_colors[(x+y*mesh_width)*4+3] = 255;
+      }
+  }
+  glBufferData(GL_ARRAY_BUFFER, c_vbo_size, initial_colors, GL_DYNAMIC_DRAW);        
+  delete[] initial_colors;
+
+  //glBufferData(GL_ARRAY_BUFFER, c_vbo_size, 0, GL_DYNAMIC_DRAW);        
+
   c_vbocl = clCreateFromGLBuffer(context, CL_MEM_WRITE_ONLY, c_vbo, NULL);
   
   // For convenience use C++ to load the program source into memory
